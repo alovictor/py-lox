@@ -23,7 +23,8 @@ class GenerateAST:
             "If         : condition, then_branch, else_branch",
             "Print      : expression",
             "Var        : name, initializer",
-            "While      : condition, body"
+            "While      : condition, body",
+            "Function    : name, params, body"
             
         ])
 

@@ -17,12 +17,33 @@ class Parser:
 
     def declaration(self):
         try:
+            if self.match('FUN'):
+                return self.function('function')
             if self.match('VAR'): 
                 return self.var_declaration()
-            return self.statement()
+            else:
+                print('state', self.statement())
+                return self.statement()
         except:
             self.synchronize()
             return
+
+    def function(self, kind):
+        name = self.consume('IDENTIFIER', f'Expect {kind} name.')
+
+        self.consume('LEFT_PAREN', f'Expect "(" after {kind} name.')
+        parameters = []
+        if not self.check('RIGHT_PAREN'):
+            while True:
+                if len(parameters) >= 255:
+                    self.error(self.peek(), 'Cant have more than 255 parameters')
+                parameters.append(self.consume('IDENTIFIER', 'Expect parameter name'))
+                if not self.match('COMMA'):
+                    break
+        self.consume('RIGHT_PAREN', f"Expect ')' after parameters")
+        self.consume('LEFT_BRACE', 'Expect "{" before ', {kind}, ' body.')
+        body = self.block()
+        return Function(name, parameters, body)
 
     def var_declaration(self):
         name = self.consume('IDENTIFIER', 'Expect a variable name')
@@ -217,7 +238,8 @@ class Parser:
 
         if self.match('NUMBER', 'STRING'):
             return Literal(self.previous().literal)
-        if self.match('IDENTIFIER'): return Variable(self.previous())
+        if self.match('IDENTIFIER'): 
+            return Variable(self.previous())
 
         if self.match('LEFT_PAREN'):
             expr = self.expression()

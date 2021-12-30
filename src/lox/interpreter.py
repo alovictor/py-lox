@@ -67,7 +67,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
             self.execute(stmt.body)
         return None
 
+    def visit_function_stmt(self, stmt):
+        function = LoxFunction(stmt)
+        self.environment.define(stmt.name.lexeme, function)
+        return None
+
     def visit_call_expr(self, expr):
+        print('call')
         callee = self.evaluate(expr)
 
         arguments = []
@@ -76,13 +82,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         if not isinstance(callee, LoxCallable):
             raise LoxRuntimeError(expr.paren, message="Can only call functions and classes.")
-        
-        # function = 
 
         if len(arguments) != funcion.arity():
             raise LoxRuntimeError(expr.paren, message=f"Expected {function.arity} arguments but got {len(arguments)}.")
 
-        return function.call(self, arguments)
+        return callee.call(self, arguments)
+
 
     def visit_assign_expr(self, expr):
         value = self.evaluate(expr.value)
