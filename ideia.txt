@@ -1,0 +1,9 @@
+bpm = 120
+scale = minorPentatonic
+
+piano :
+  n [0,1]
+  sus 2
+
+drums :
+  'x-x-'
