@@ -14,5 +14,8 @@ class LoxClock(LoxCallable):
     def call(self, interpreter, arguments):
         return time.time()
     
-    def arity():
+    def arity(self):
         return 0
+
+    def to_string(self):
+        return '<native fn>'

@@ -24,7 +24,8 @@ class GenerateAST:
             "Print      : expression",
             "Var        : name, initializer",
             "While      : condition, body",
-            "Function    : name, params, body"
+            "Function   : name, params, body",
+            "Return     : keyword, value",
             
         ])
 

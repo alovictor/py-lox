@@ -1,17 +1,24 @@
 from callable import LoxCallable
+from returnerr import ReturnErr
 from environment import Environment
 
 class LoxFunction(LoxCallable):
-    def __init__(self, declaration):
+    def __init__(self, declaration, closure):
         self.declaration = declaration
+        self.closure = closure
 
     def call(self, interpreter, arguments):
-        environment = Environment(interpreter.globals)
+        environment = Environment(self.closure)
+        
 
-        for i in range(len(self.declaration.params)):
-            self.environment.define(self.declaration.params.get(i).lexeme, arguments.get(i))
+        for i, params in enumerate(self.declaration.params):
+            environment.define(self.declaration.params[i].lexeme, arguments[i])
 
-        self.interpreter.execute_block(self.declaration.body, self.environment)
+        try:
+            interpreter.execute_block(self.declaration.body, environment)
+        except ReturnErr as e:
+            return e.value
+
         return None
 
     def arity(self):

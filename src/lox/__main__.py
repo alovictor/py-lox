@@ -1,18 +1,14 @@
 from sys import argv
-
 from lox import Lox
 
-def main(args):
-
-    if len(args) > 1:
-        print('Usage: lox [script]')
-        exit()
-
-    elif len(args) == 1:
-        Lox.run_file(args[0])
-        
+try:
+    if len(argv) > 2:
+        print('Usage: seven [script]')
+    elif len(argv) == 2:
+        Lox.run_file(argv[1])
     else:
         Lox.run_prompt()
-
-
-main(argv[1:])
+        
+except KeyboardInterrupt:
+    print('\n')
+    exit()

@@ -16,17 +16,16 @@ class Parser:
         return statements
 
     def declaration(self):
-        try:
+        # try:
             if self.match('FUN'):
                 return self.function('function')
             if self.match('VAR'): 
                 return self.var_declaration()
             else:
-                print('state', self.statement())
                 return self.statement()
-        except:
-            self.synchronize()
-            return
+        # except:
+        #     self.synchronize()
+        #     return
 
     def function(self, kind):
         name = self.consume('IDENTIFIER', f'Expect {kind} name.')
@@ -41,7 +40,7 @@ class Parser:
                 if not self.match('COMMA'):
                     break
         self.consume('RIGHT_PAREN', f"Expect ')' after parameters")
-        self.consume('LEFT_BRACE', 'Expect "{" before ', {kind}, ' body.')
+        self.consume('LEFT_BRACE', f'Expect "{{" before {kind} body.')
         body = self.block()
         return Function(name, parameters, body)
 
@@ -61,6 +60,7 @@ class Parser:
         if self.match('IF'): return self.if_statement()
         if self.match('WHILE'): return self.while_statement()
         if self.match('FOR'): return self.for_statement()
+        if self.match('RETURN'): return self.return_statement()
         return self.expression_statement()
 
     def print_statement(self):
@@ -133,6 +133,16 @@ class Parser:
             body = Block([initializer, body])
 
         return body
+
+    def return_statement(self):
+        keyword = self.previous()
+        value = None
+
+        if not self.check('SEMICOLON'):
+            value = self.expression()
+
+        self.consume('SEMICOLON', 'Expeded ";" after return value')
+        return Return(keyword, value)
 
     def expression(self):
         return self.assignment()
@@ -277,8 +287,8 @@ class Parser:
     def previous(self):
         return self.tokens[self.current - 1]
 
-    def consume(self, type, message):
-        if self.check(type):
+    def consume(self, type_, message):
+        if self.check(type_):
             return self.advance()
 
         raise self.error(self.peek(), message)

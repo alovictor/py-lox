@@ -25,14 +25,15 @@ class Lox:
     def run(source):
         lexer = Lexer(source)
         tokens = lexer.scan_tokens()
+        # print(tokens)
+
         parser = Parser(tokens)
         statements = parser.parse()
+        # print(statements)
 
         if Lox.had_error: return
         if Lox.had_runtime_error: return
         Interpreter().interpret(statements)
-        # print(Printer().print(expr))
-        # print(tokens)
 
     @staticmethod
     def runtime_error(error):

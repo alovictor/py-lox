@@ -1,6 +1,8 @@
 from expr import *
 from stmt import *
 from callable import *
+from function import *
+from returnerr import *
 from environment import Environment
 
 class LoxRuntimeError(RuntimeError):
@@ -17,11 +19,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
         self.environment = self.globals
 
     def interpret(self, statements):
-        try:
+        # try:
             for statement in statements:
                 self.execute(statement)
-        except:
-            raise LoxRuntimeError(None, message='Erro')
+        # except:
+        #     raise LoxRuntimeError(None, message='Erro')
 
     def execute(self, stmt):
         stmt.accept(self)
@@ -30,8 +32,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
         previous = self.environment
         self.environment = env
 
-        for state in statements:
-            self.execute(state)
+        for statement in statements:
+            self.execute(statement)
         
         self.environment = previous
 
@@ -68,23 +70,30 @@ class Interpreter(ExprVisitor, StmtVisitor):
         return None
 
     def visit_function_stmt(self, stmt):
-        function = LoxFunction(stmt)
+        function = LoxFunction(stmt, self.environment)
         self.environment.define(stmt.name.lexeme, function)
         return None
 
+    def visit_return_stmt(self, stmt):
+        value = None
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+
+        raise ReturnErr(value)
+        
+
     def visit_call_expr(self, expr):
-        print('call')
-        callee = self.evaluate(expr)
+        callee = self.evaluate(expr.callee)
 
         arguments = []
-        for argument in arguments:
+        for argument in expr.arguments:
             arguments.append(self.evaluate(argument))
 
         if not isinstance(callee, LoxCallable):
-            raise LoxRuntimeError(expr.paren, message="Can only call functions and classes.")
+            raise LoxRuntimeError(expr.paren, message="Can only call functions and classes.")  
 
-        if len(arguments) != funcion.arity():
-            raise LoxRuntimeError(expr.paren, message=f"Expected {function.arity} arguments but got {len(arguments)}.")
+        if len(arguments) != callee.arity():
+            raise LoxRuntimeError(expr.paren, message=f"Expected {callee.arity} arguments but got {len(arguments)}.")
 
         return callee.call(self, arguments)
 
