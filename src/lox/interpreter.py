@@ -13,10 +13,9 @@ class LoxRuntimeError(RuntimeError):
 class Interpreter(ExprVisitor, StmtVisitor):
     def __init__(self):
         self.globals = Environment()
-
         self.globals.define("clock", LoxClock())
-
         self.environment = self.globals
+        self.locals = {}
 
     def interpret(self, statements):
         # try:
@@ -27,6 +26,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def execute(self, stmt):
         stmt.accept(self)
+
+    def resolve(self, expr, depth):
+        self.locals[expr] = depth
 
     def execute_block(self, statements, env):
         previous = self.environment
@@ -100,11 +102,18 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_assign_expr(self, expr):
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+
+        distance = self.locals[expr]
+
+        if distance != None:
+            self.environment.assign_at(distance, expr.name, value)
+        else:
+            self.globals.assign(expr.name, value)
+
         return value
 
     def visit_variable_expr(self, expr):
-        return self.environment.get(expr.name)
+        return self.look_up_variable(expr.name, expr)
 
     def visit_literal_expr(self, expr):
         return expr.value
@@ -171,6 +180,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
             if not self.is_truthy(left): return left
 
         return self.evaluate(expr.right)
+
+    def look_up_variable(self, name, expr):
+        distance = self.locals.get(expr)
+
+        if distance != None:
+            return self.environment.get_at(distance, name.lexeme)
+        else:
+            return self.globals.get(name)
 
     def evaluate(self, expr):
         return expr.accept(self)

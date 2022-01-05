@@ -2,6 +2,7 @@ from lexer import Lexer
 from parser import Parser
 from printer import Printer
 from interpreter import Interpreter
+from resolver import Resolver
 
 class Lox:
     had_error = False
@@ -33,7 +34,15 @@ class Lox:
 
         if Lox.had_error: return
         if Lox.had_runtime_error: return
-        Interpreter().interpret(statements)
+
+        interpreter = Interpreter()
+
+        resolver = Resolver(interpreter)
+        resolver.resolve(statements)
+
+        if Lox.had_error: return
+
+        interpreter.interpret(statements)
 
     @staticmethod
     def runtime_error(error):
