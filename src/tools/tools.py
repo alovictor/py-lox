@@ -15,6 +15,9 @@ class GenerateAST:
             "Unary    : operator, right",
             "Variable : name",
             "Call     : callee, paren, arguments",
+            "Get      : object, name",
+            "Set      : object, name, value",
+            "This     : keyword"
         ])
 
         self.define_ast(self.output_dir, 'Stmt', [
@@ -26,6 +29,7 @@ class GenerateAST:
             "While      : condition, body",
             "Function   : name, params, body",
             "Return     : keyword, value",
+            "Class      : name, methods"
             
         ])
 

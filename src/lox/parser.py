@@ -17,6 +17,8 @@ class Parser:
 
     def declaration(self):
         # try:
+            if self.match('CLASS'):
+                return self.class_declaration()
             if self.match('FUN'):
                 return self.function('function')
             if self.match('VAR'): 
@@ -40,9 +42,20 @@ class Parser:
                 if not self.match('COMMA'):
                     break
         self.consume('RIGHT_PAREN', f"Expect ')' after parameters")
-        self.consume('LEFT_BRACE', f'Expect "{{" before {kind} body.')
+        self.consume('LEFT_BRACE', f'Expect before {kind} body.')
         body = self.block()
         return Function(name, parameters, body)
+
+    def class_declaration(self):
+        name = self.consume('IDENTIFIER', 'Expect class name.')
+        self.consume('LEFT_BRACE', 'Expect { before class body.')
+
+        methods = []
+        while not self.check('RIGHT_BRACE') and not self.is_at_end():
+            methods.append(self.function('method'))
+
+        self.consume('RIGHT_BRACE', 'Expect } before class body.')
+        return Class(name, methods)
 
     def var_declaration(self):
         name = self.consume('IDENTIFIER', 'Expect a variable name')
@@ -126,7 +139,7 @@ class Parser:
             body = Block([body, Expression(increment)])
 
         if condition is None:
-            condition = Litera(True)
+            condition = Literal(True)
         body = While(condition, body)
 
         if initializer is not None:
@@ -157,6 +170,9 @@ class Parser:
             if isinstance(expr, Variable):
                 name = expr.name
                 return Assign(name, value)
+            elif isinstance(expr, Get):
+                get = expr
+                return Set(get.object, get.name, value)
 
             self.error(equals, 'Invalid assignment target.')
 
@@ -236,6 +252,9 @@ class Parser:
         while True:
             if self.match('LEFT_PAREN'):
                 expr = self.finish_call(expr)
+            elif self.match('DOT'):
+                name = self.consume('IDENTIFIER', 'Expect property name after .')
+                expr = Get(expr, name)
             else: 
                 break
 
@@ -250,6 +269,8 @@ class Parser:
             return Literal(self.previous().literal)
         if self.match('IDENTIFIER'): 
             return Variable(self.previous())
+        if self.match('THIS'):
+            return This(self.previous())
 
         if self.match('LEFT_PAREN'):
             expr = self.expression()

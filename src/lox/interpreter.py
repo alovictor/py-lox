@@ -2,6 +2,8 @@ from expr import *
 from stmt import *
 from callable import *
 from function import *
+from lox_class import *
+from instance import LoxInstance
 from returnerr import *
 from environment import Environment
 
@@ -39,6 +41,19 @@ class Interpreter(ExprVisitor, StmtVisitor):
         
         self.environment = previous
 
+    def visit_class_stmt(self, stmt):
+        self.environment.define(stmt.name.lexeme, None)
+
+        methods = {}
+
+        for method in stmt.methods:
+            function = LoxFunction(method, self.environment, method.name.lexeme == 'init') 
+            methods[method.name.lexeme] = function
+
+        klass = LoxClass(stmt.name.lexeme, methods)
+        self.environment.assign(stmt.name, klass)
+        return None
+
     def visit_expression_stmt(self, stmt):
         self.evaluate(stmt.expression)
         return None
@@ -72,7 +87,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         return None
 
     def visit_function_stmt(self, stmt):
-        function = LoxFunction(stmt, self.environment)
+        function = LoxFunction(stmt, self.environment, False)
         self.environment.define(stmt.name.lexeme, function)
         return None
 
@@ -83,6 +98,25 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         raise ReturnErr(value)
         
+    def visit_get_expr(self, expr):
+        obj = self.evaluate(expr.object)
+        if isinstance(obj, LoxInstance):
+            return obj.get(expr.name)
+
+        print(f'{expr.name} Only instances have properties')
+
+    def visit_set_expr(self, expr):
+        obj = self.evaluate(expr.object)
+        if not isinstance(obj, LoxInstance):
+            print('Only instances have fields')
+            return
+        
+        value = self.evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
+
+    def visit_this_expr(self,expr):
+        return self.look_up_variable(expr.keyword, expr)
 
     def visit_call_expr(self, expr):
         callee = self.evaluate(expr.callee)

@@ -33,6 +33,18 @@ class ExprVisitor(ABC):
    def visit_call_expr(self, expr):
        pass
 
+   @abstractmethod
+   def visit_get_expr(self, expr):
+       pass
+
+   @abstractmethod
+   def visit_set_expr(self, expr):
+       pass
+
+   @abstractmethod
+   def visit_this_expr(self, expr):
+       pass
+
 class Expr(ABC):
    @staticmethod
    def accept(self, visitor):
@@ -101,4 +113,28 @@ class Call(Expr):
 
    def accept(self, visitor):
        return visitor.visit_call_expr(self)
+
+class Get(Expr):
+   def __init__(self, object, name):
+       self.object = object
+       self.name = name
+
+   def accept(self, visitor):
+       return visitor.visit_get_expr(self)
+
+class Set(Expr):
+   def __init__(self, object, name, value):
+       self.object = object
+       self.name = name
+       self.value = value
+
+   def accept(self, visitor):
+       return visitor.visit_set_expr(self)
+
+class This(Expr):
+   def __init__(self, keyword):
+       self.keyword = keyword
+
+   def accept(self, visitor):
+       return visitor.visit_this_expr(self)
 
